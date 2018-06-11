@@ -170,6 +170,33 @@ func (t Type) String() (out string) {
 	return t.stringKind
 }
 
+func (t Type) packTightly(v reflect.Value) ([]byte, error) {
+	// dereference pointer first if it's a pointer
+	v = indirect(v)
+
+	if err := typeCheck(t, v); err != nil {
+		return nil, err
+	}
+
+	if t.T == SliceTy || t.T == ArrayTy {
+		var packed []byte
+
+		for i := 0; i < v.Len(); i++ {
+			val, err := t.Elem.pack(v.Index(i))
+			if err != nil {
+				return nil, err
+			}
+			packed = append(packed, val...)
+		}
+		if t.T == SliceTy {
+			return packBytesSlice(packed, v.Len()), nil
+		} else if t.T == ArrayTy {
+			return packed, nil
+		}
+	}
+	return packElementTightly(t, v), nil
+}
+
 func (t Type) pack(v reflect.Value) ([]byte, error) {
 	// dereference pointer first if it's a pointer
 	v = indirect(v)

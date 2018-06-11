@@ -230,6 +230,34 @@ func (arguments Arguments) PackValues(args []interface{}) ([]byte, error) {
 }
 
 // Pack performs the operation Go format -> Hexdata
+func (arguments Arguments) PackTightly(args ...interface{}) ([]byte, error) {
+	// Make sure arguments match up and pack them
+	abiArgs := arguments
+	if len(args) != len(abiArgs) {
+		return nil, fmt.Errorf("argument count mismatch: %d for %d", len(args), len(abiArgs))
+	}
+	// variable input is the output appended at the end of packed
+	// output. This is used for strings and bytes types input.
+	var variableInput []byte
+
+	var ret []byte
+	for i, a := range args {
+		input := abiArgs[i]
+		// pack the input
+		packed, err := input.Type.packTightly(reflect.ValueOf(a))
+		if err != nil {
+			return nil, err
+		}
+		// append the packed value to the input
+		ret = append(ret, packed...)
+	}
+	// append the variable input at the end of the packed input
+	ret = append(ret, variableInput...)
+
+	return ret, nil
+}
+
+// Pack performs the operation Go format -> Hexdata
 func (arguments Arguments) Pack(args ...interface{}) ([]byte, error) {
 	// Make sure arguments match up and pack them
 	abiArgs := arguments
