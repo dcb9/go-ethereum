@@ -47,9 +47,9 @@ func packElementTightly(t Type, reflectValue reflect.Value) []byte {
 		return reflectValue.Bytes()
 	case BoolTy:
 		if reflectValue.Bool() {
-			return math.PaddedBigBytes(common.Big1, 32)
+			return math.PaddedBigBytes(common.Big1, 1)
 		}
-		return math.PaddedBigBytes(common.Big0, 32)
+		return math.PaddedBigBytes(common.Big0, 1)
 	case BytesTy:
 		if reflectValue.Kind() == reflect.Array {
 			reflectValue = mustArrayToByteSlice(reflectValue)
